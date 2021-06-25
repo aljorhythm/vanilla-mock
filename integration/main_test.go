@@ -22,15 +22,20 @@ func Test_LoadInterfaceAndGenerate(t *testing.T) {
 	actual := v.Output()
 
 	expected := `type VanillerVMock struct {
-	CombinationFn func(int64) (string, error)
-	IntValueFn func() int64
-	StringParamFn func(string)
-	VariadicFn func(abc string, more ...string) string
-	WithNameFn func(abc int)
+	CombinationFn func(i0 int64) (string, error)
+	ExternalFn func(c difflib.UnifiedDiff) ()
+	IntValueFn func() (int64)
+	StringParamFn func(s0 string) ()
+	VariadicFn func(abc string, more ...string) (string)
+	WithNameFn func(abc int) ()
 }
 
 func (v VanillerVMock) Combination(i0 int64) (string, error) {
 	return v.CombinationFn(i0)
+}
+
+func (v VanillerVMock) External(c difflib.UnifiedDiff) () {
+	v.ExternalFn(c)
 }
 
 func (v VanillerVMock) IntValue() (int64) {

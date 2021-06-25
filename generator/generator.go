@@ -8,8 +8,11 @@ import (
 
 func GenerateVanillaMock(iface *types.Interface, ifaceName string) (*VanillaMockStructOutput, error) {
 	v := VanillaMockStructOutput{
-		iface:     iface,
-		ifaceName: ifaceName,
+		iface:             iface,
+		ifaceName:         ifaceName,
+		localizationCache: map[string]string{},
+		packagePathToName: map[string]string{},
+		nameToPackagePath: map[string]string{},
 	}
 
 	for i := 0; i < iface.NumMethods(); i++ {
@@ -21,11 +24,15 @@ func GenerateVanillaMock(iface *types.Interface, ifaceName string) (*VanillaMock
 }
 
 type VanillaMockStructOutput struct {
-	iface     *types.Interface
-	ifaceName string
-	pkg       string
-	fields    []string
-	impls     []string
+	iface             *types.Interface
+	ifaceName         string
+	pkg               string
+	fields            []string
+	impls             []string
+	packagePathToName map[string]string
+	nameToPackagePath map[string]string
+	localizationCache map[string]string
+	packageRoots      []string
 }
 
 func (v *VanillaMockStructOutput) mockStructName() string {
@@ -64,9 +71,6 @@ func FuncSig(fn *types.Func) *types.Signature {
 
 func (v *VanillaMockStructOutput) parseMethod(m *types.Func) {
 	sig := FuncSig(m)
-	sigString := sig.String()
-	fName := m.Name() + "Fn"
-	v.addField(fmt.Sprintf("%s %s", fName, sigString))
 
 	params := sig.Params()
 
@@ -75,7 +79,7 @@ func (v *VanillaMockStructOutput) parseMethod(m *types.Func) {
 	for i := 0; i < params.Len(); i++ {
 		param := params.At(i)
 		pName := param.Name()
-		pType := param.Type().String()
+		var pType string
 
 		if i == params.Len()-1 && sig.Variadic() {
 			switch t := param.Type().(type) {
@@ -84,6 +88,8 @@ func (v *VanillaMockStructOutput) parseMethod(m *types.Func) {
 			default:
 				panic("bad variadic type!")
 			}
+		} else {
+			pType = v.renderType(param.Type())
 		}
 
 		if pName == "" {
@@ -100,11 +106,16 @@ func (v *VanillaMockStructOutput) parseMethod(m *types.Func) {
 		mockFnInputs = append(mockFnInputs, input)
 	}
 
-	newSig := strings.Join(newFnParams, ", ")
-	passArgs := strings.Join(mockFnInputs, ", ")
+	newSigParams := strings.Join(newFnParams, ", ")
+	fName := m.Name() + "Fn"
 	rets := sig.Results().String()
+
+	v.addField(fmt.Sprintf("%s func(%s) %s", fName, newSigParams, rets))
+
+	passArgs := strings.Join(mockFnInputs, ", ")
 	receiver := v.mockStructName()
 	iLetter := v.ifaceFirstLetter()
+
 	ret := "return "
 	if sig.Results().Len() == 0 {
 		ret = ""
@@ -112,6 +123,15 @@ func (v *VanillaMockStructOutput) parseMethod(m *types.Func) {
 
 	impl := fmt.Sprintf(`func (%s %s) %s(%s) %s {
 	%s%s.%s(%s)
-}`, iLetter, receiver, m.Name(), newSig, rets, ret, iLetter, fName, passArgs)
+}`, iLetter, receiver, m.Name(), newSigParams, rets, ret, iLetter, fName, passArgs)
 	v.addImpl(impl)
+}
+
+func (v *VanillaMockStructOutput) addPackageImport(pkg *types.Package) string {
+	return v.addPackageImportWithName(pkg.Path(), pkg.Name())
+}
+
+func (vo *VanillaMockStructOutput) importNameExists(name string) bool {
+	_, nameExists := vo.nameToPackagePath[name]
+	return nameExists
 }
