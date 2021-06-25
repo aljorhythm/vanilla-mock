@@ -1,4 +1,6 @@
-fmt:
+setup:
+	git config core.hooksPath .githooks
+fmt: setup
 	go fmt ./...
 unit_test: fmt
 	go test ./...
