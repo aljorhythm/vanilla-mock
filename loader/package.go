@@ -24,7 +24,17 @@ func LoadInterface(ctx context.Context, dir string, ifaceName string) (*types.In
 
 	obj := scope.Lookup(ifaceName)
 
-	typ, ok := obj.Type().(*types.Named)
+	if obj == nil {
+		return nil, errors.New("interface_not_found")
+	}
+
+	objType := obj.Type()
+
+	if objType == nil {
+		return nil, errors.New("obj_type_not_found")
+	}
+
+	typ, ok := objType.(*types.Named)
 	if !ok {
 		return nil, errors.New("not_named_type")
 	}
