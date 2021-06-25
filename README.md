@@ -2,7 +2,7 @@
 
 Generate vanilla style mocks say from
 
-```
+```golang
 type Vaniller interface {
 	IntValue() int64
 	StringParam(string)
@@ -14,7 +14,7 @@ type Vaniller interface {
 
 to
 
-```
+```golang
 type VanillerVMock struct {
 	CombinationFn func(int64) (string, error)
 	IntValueFn func() int64
