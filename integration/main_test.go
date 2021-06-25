@@ -3,61 +3,52 @@ package integration
 import (
 	"context"
 	"github.com/aljorhythm/vanilla-mock/generator"
-	"github.com/aljorhythm/vanilla-mock/parser"
+	"github.com/aljorhythm/vanilla-mock/loader"
 	"github.com/aljorhythm/vanilla-mock/test"
-	"go/types"
-	"golang.org/x/tools/go/packages"
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
-func Test_ParseWalkGenerate(t *testing.T) {
-	filePath := test.GetAbsPath("test/vaniller.go")
-	t.Logf(filePath)
-	name := "Vaniller"
-	parsed, err := parser.Parse(filePath)
-	if err != nil {
-		t.Error(err)
-		return
-	}
-	parsed.Find(name)
-}
-
-func Test_TestMain(t *testing.T) {
+func Test_LoadInterfaceAndGenerate(t *testing.T) {
 	interfaceName := "Vaniller"
 	dir := test.GetTestRoot()
-	t.Logf("dir %s", dir)
-	pkgs, err := packages.Load(&packages.Config{
-		Context: context.Background(),
-		Dir:     dir,
-		Mode:    packages.NeedFiles | packages.NeedSyntax | packages.NeedTypesInfo | packages.NeedTypes,
-	})
-
-	t.Logf("pkgs %#v", len(pkgs))
-
+	iface, _ := loader.LoadInterface(context.Background(), dir, interfaceName)
+	v, err := generator.GenerateVanillaMock(iface, interfaceName)
 	if err != nil {
 		t.Error(err)
 		return
 	}
 
-	pkg := pkgs[0]
-	t.Logf("pkg %#v", pkg)
+	actual := v.Output()
 
-	scope := pkg.Types.Scope()
-	t.Logf("pkg scope %#v", scope)
-	t.Logf("scope names %#v", scope.Names())
+	expected := `type VanillerVMock struct {
+	CombinationFn func(int64) (string, error)
+	IntValueFn func() int64
+	StringParamFn func(string)
+	VariadicFn func(abc string, more ...string) string
+	WithNameFn func(abc int)
+}
 
-	obj := scope.Lookup(interfaceName)
+func (v VanillerVMock) Combination(i0 int64) (string, error) {
+	return v.CombinationFn(i0)
+}
 
-	if "1" == "1" {
-		t.Logf("obj %#v", obj)
+func (v VanillerVMock) IntValue() (int64) {
+	return v.IntValueFn()
+}
 
-		//return
-	}
+func (v VanillerVMock) StringParam(s0 string) () {
+	v.StringParamFn(s0)
+}
 
-	typ, _ := obj.Type().(*types.Named)
+func (v VanillerVMock) Variadic(abc string, more ...string) (string) {
+	return v.VariadicFn(abc, more...)
+}
 
-	iface, _ := typ.Underlying().(*types.Interface)
+func (v VanillerVMock) WithName(abc int) () {
+	v.WithNameFn(abc)
+}
+`
 
-	v, err := generator.GenerateVanillaMock(iface, interfaceName)
-	t.Logf(v.Output())
+	assert.Equal(t, expected, actual)
 }

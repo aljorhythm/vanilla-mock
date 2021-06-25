@@ -1,27 +1,10 @@
 package generator
 
 import (
-	"errors"
 	"fmt"
-	"github.com/aljorhythm/vanilla-mock/parser"
 	"go/types"
 	"strings"
 )
-
-func GenerateVanillaMockFromFile(interfacePath string, interfaceName string) (*VanillaMockStructOutput, error) {
-	parsed, err := parser.Parse(interfacePath)
-	iface, err := parsed.Find(interfaceName)
-
-	if err != nil {
-		return nil, err
-	}
-
-	if iface == nil {
-		return nil, errors.New("iface is nil")
-	}
-
-	return GenerateVanillaMock(iface, interfaceName)
-}
 
 func GenerateVanillaMock(iface *types.Interface, ifaceName string) (*VanillaMockStructOutput, error) {
 	v := VanillaMockStructOutput{
