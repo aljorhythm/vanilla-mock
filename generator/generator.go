@@ -108,7 +108,14 @@ func (v *VanillaMockStructOutput) parseMethod(m *types.Func) {
 
 	newSigParams := strings.Join(newFnParams, ", ")
 	fName := m.Name() + "Fn"
-	rets := sig.Results().String()
+	returns := []string{}
+
+	for i := 0; i < sig.Results().Len(); i++ {
+		r := sig.Results().At(i)
+		returns = append(returns, v.renderType(r.Type()))
+	}
+
+	rets := fmt.Sprintf("(%s)", strings.Join(returns, ", "))
 
 	v.addField(fmt.Sprintf("%s func(%s) %s", fName, newSigParams, rets))
 
