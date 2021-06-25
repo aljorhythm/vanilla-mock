@@ -1,5 +1,6 @@
 package test
 
+// Vaniller is an interface used for testing
 type Vaniller interface {
 	IntValue() int64
 	StringParam(string)
