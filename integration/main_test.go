@@ -21,7 +21,9 @@ func Test_LoadInterfaceAndGenerate(t *testing.T) {
 
 	actual := v.Output()
 
-	expected := `type VanillerVMock struct {
+	expected := `package mock
+
+type VanillerVMock struct {
 	CombinationFn func(i0 int64) (string, error)
 	ExternalFn func(c difflib.UnifiedDiff) ()
 	IntValueFn func() (int64)

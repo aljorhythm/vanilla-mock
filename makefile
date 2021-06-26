@@ -1,5 +1,6 @@
 setup:
 	git config core.hooksPath .githooks
+	go get
 fmt: setup
 	sh .lint.sh || (echo "formatting failed $$?"; exit 1)
 unit_test: fmt

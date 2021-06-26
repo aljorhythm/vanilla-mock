@@ -52,7 +52,9 @@ func (v *VanillaMockStructOutput) addImpl(impl string) {
 }
 
 func (v *VanillaMockStructOutput) Output() string {
-	template := `type %s struct %s
+	template := `package mock
+
+type %s struct %s
 %s
 `
 	name := v.mockStructName()
