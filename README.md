@@ -51,3 +51,7 @@ func (v VanillerVMock) WithName(abc int) () {
 # Install
 
 `make install`
+
+# Credits
+
+https://github.com/vektra/mockery
