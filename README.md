@@ -43,3 +43,11 @@ func (v VanillerVMock) WithName(abc int) () {
 	v.WithNameFn(abc)
 }
 ```
+
+# Build
+
+`make build`
+
+# Install
+
+`make install`
